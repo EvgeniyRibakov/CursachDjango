@@ -7,60 +7,143 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Attempt',
+            name="Attempt",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('attempt_time', models.DateTimeField(auto_now_add=True, verbose_name='Attempt Time')),
-                ('status', models.CharField(choices=[('success', 'Success'), ('failed', 'Failed')], max_length=10, verbose_name='Status')),
-                ('server_response', models.TextField(blank=True, null=True, verbose_name='Server Response')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "attempt_time",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Attempt Time"
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("success", "Success"), ("failed", "Failed")],
+                        max_length=10,
+                        verbose_name="Status",
+                    ),
+                ),
+                (
+                    "server_response",
+                    models.TextField(
+                        blank=True, null=True, verbose_name="Server Response"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Attempt',
-                'verbose_name_plural': 'Attempts',
+                "verbose_name": "Attempt",
+                "verbose_name_plural": "Attempts",
             },
         ),
         migrations.CreateModel(
-            name='Message',
+            name="Message",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('subject', models.CharField(max_length=255, verbose_name='Subject')),
-                ('body', models.TextField(verbose_name='Body')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("subject", models.CharField(max_length=255, verbose_name="Subject")),
+                ("body", models.TextField(verbose_name="Body")),
             ],
             options={
-                'verbose_name': 'Message',
-                'verbose_name_plural': 'Messages',
+                "verbose_name": "Message",
+                "verbose_name_plural": "Messages",
             },
         ),
         migrations.CreateModel(
-            name='Newsletter',
+            name="Newsletter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('start_time', models.DateTimeField(verbose_name='Start Time')),
-                ('end_time', models.DateTimeField(verbose_name='End Time')),
-                ('frequency', models.CharField(choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly')], default='daily', max_length=10, verbose_name='Frequency')),
-                ('status', models.CharField(choices=[('created', 'Created'), ('started', 'Started'), ('finished', 'Finished')], default='created', max_length=10, verbose_name='Status')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("start_time", models.DateTimeField(verbose_name="Start Time")),
+                ("end_time", models.DateTimeField(verbose_name="End Time")),
+                (
+                    "frequency",
+                    models.CharField(
+                        choices=[
+                            ("daily", "Daily"),
+                            ("weekly", "Weekly"),
+                            ("monthly", "Monthly"),
+                        ],
+                        default="daily",
+                        max_length=10,
+                        verbose_name="Frequency",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("created", "Created"),
+                            ("started", "Started"),
+                            ("finished", "Finished"),
+                        ],
+                        default="created",
+                        max_length=10,
+                        verbose_name="Status",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Newsletter',
-                'verbose_name_plural': 'Newsletters',
+                "verbose_name": "Newsletter",
+                "verbose_name_plural": "Newsletters",
             },
         ),
         migrations.CreateModel(
-            name='Recipient',
+            name="Recipient",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('full_name', models.CharField(max_length=255, verbose_name='Full Name')),
-                ('email', models.EmailField(max_length=254, unique=True, verbose_name='Email')),
-                ('comment', models.TextField(blank=True, null=True, verbose_name='Comment')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "full_name",
+                    models.CharField(max_length=255, verbose_name="Full Name"),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        max_length=254, unique=True, verbose_name="Email"
+                    ),
+                ),
+                (
+                    "comment",
+                    models.TextField(blank=True, null=True, verbose_name="Comment"),
+                ),
             ],
             options={
-                'verbose_name': 'Recipient',
-                'verbose_name_plural': 'Recipients',
+                "verbose_name": "Recipient",
+                "verbose_name_plural": "Recipients",
             },
         ),
     ]
