@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Список сообщений</h1>
+<a href="{% url 'message_create' %}">Добавить сообщение</a>
+<ul>
+{% for message in object_list %}
+    <li>{{ message.subject }} - {{ message.body|truncatewords:10 }} 
+        {% if user.is_manager or message.owner == user %}
+            <a href="{% url 'message_update' message.pk %}">Изменить</a>
+            <a href="{% url 'message_delete' message.pk %}">Удалить</a>
+        {% endif %}
+        <small>(Владелец: {{ message.owner.email }})</small>
+    </li>
+{% empty %}
+    <li>Нет сообщений.</li>
+{% endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Список рассылок</h1>
+<a href="{% url 'newsletter_create' %}">Добавить рассылку</a>
+<ul>
+{% for newsletter in object_list %}
+    <li>{{ newsletter.message.subject }} ({{ newsletter.start_time }} - {{ newsletter.end_time }}) 
+        - Частота: {{ newsletter.frequency }} | Статус: {{ newsletter.status }}
+        {% if user.is_manager or newsletter.owner == user %}
+            <a href="{% url 'newsletter_update' newsletter.pk %}">Изменить</a>
+            <a href="{% url 'newsletter_delete' newsletter.pk %}">Удалить</a>
+        {% endif %}
+        <small>(Владелец: {{ newsletter.owner.email }})</small>
+    </li>
+{% empty %}
+    <li>Нет рассылок.</li>
+{% endfor %}
+</ul>
+{% endblock %}

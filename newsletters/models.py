@@ -1,179 +1,73 @@
-from django.utils import timezone
-from django.core.mail import send_mail
 from django.db import models
-from django.conf import settings
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-class MailingStatistics(models.Model):
-    mailing = models.ForeignKey("Mailing", on_delete=models.CASCADE, related_name="statistics")
-    sent_at = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=20, choices=[
-        ("success", "Успешно"),
-        ("failed", "Ошибка"),
-        ("pending", "В ожидании"),
-    ], default="pending")
-    recipient = models.EmailField()
-    response_message = models.TextField(blank=True, null=True)
-
-    class Meta:
-        verbose_name = "Статистика рассылки"
-        verbose_name_plural = "Статистика рассылок"
-
-    def __str__(self):
-        return f"{self.mailing} → {self.recipient} ({self.status})"
-
-
-class Client(models.Model):
-    email = models.EmailField(unique=True)
-
-    def __str__(self):
-        return self.email
-
+from django.utils.translation import gettext_lazy as _
+from users.models import CustomUser
 
 class Recipient(models.Model):
-    email = models.EmailField(unique=True, verbose_name='Email')
-    full_name = models.CharField(max_length=100, verbose_name='Name')
-    comment = models.TextField(max_length=100, verbose_name='Description')
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True,
-                              blank=True)  # Владелец получателя
-
-    class Meta:
-        verbose_name = 'Получатель'
-        verbose_name_plural = 'Получатели'
+    full_name = models.CharField(max_length=255, verbose_name=_('Full Name'))
+    email = models.EmailField(unique=True, verbose_name=_('Email'))
+    comment = models.TextField(blank=True, null=True, verbose_name=_('Comment'))
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='recipients', verbose_name=_('Owner'))
 
     def __str__(self):
-        return self.full_name
+        return f"{self.full_name} ({self.email})"
 
+    class Meta:
+        verbose_name = _('Recipient')
+        verbose_name_plural = _('Recipients')
 
 class Message(models.Model):
-    subject = models.CharField("Тема", max_length=255)
-    body = models.TextField("Тело сообщения")
-    created_at = models.DateTimeField("Дата создания", auto_now_add=True)
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # Владелец сообщения
+    subject = models.CharField(max_length=255, verbose_name=_('Subject'))
+    body = models.TextField(verbose_name=_('Body'))
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='messages', verbose_name=_('Owner'))
 
     def __str__(self):
         return self.subject
 
     class Meta:
-        verbose_name = 'Сообщение'
-        verbose_name_plural = 'Сообщения'
+        verbose_name = _('Message')
+        verbose_name_plural = _('Messages')
 
+class Newsletter(models.Model):
+    FREQUENCY_CHOICES = (
+        ('daily', _('Daily')),
+        ('weekly', _('Weekly')),
+        ('monthly', _('Monthly')),
+    )
+    STATUS_CHOICES = (
+        ('created', _('Created')),
+        ('started', _('Started')),
+        ('finished', _('Finished')),
+    )
 
-class MailingStatus(models.TextChoices):
-    CREATED = 'Создана', 'Создана'
-    STARTED = 'Запущена', 'Запущена'
-    FINISHED = 'Завершена', 'Завершена'
-
-
-class Mailing(models.Model):
-    STATUS_CHOICES = [
-        ('created', 'Создана'),
-        ('started', 'Запущена'),
-        ('completed', 'Завершена'),
-    ]
-
-    subject = models.CharField(max_length=255, blank=True, null=True)
-    start_datetime = models.DateTimeField()
-    end_datetime = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='created')
-    message = models.ForeignKey('Message', on_delete=models.CASCADE)
-    recipients = models.ManyToManyField('Recipient')
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # Владелец рассылки
-
-    def get_recipients(self):
-        return Client.objects.all()
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='newsletters', verbose_name=_('Message'))
+    recipients = models.ManyToManyField(Recipient, related_name='newsletters', verbose_name=_('Recipients'))
+    start_time = models.DateTimeField(verbose_name=_('Start Time'))
+    end_time = models.DateTimeField(verbose_name=_('End Time'))
+    frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, default='daily', verbose_name=_('Frequency'))
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='created', verbose_name=_('Status'))
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='newsletters', verbose_name=_('Owner'))
 
     def __str__(self):
-        return f"Mailing {self.subject} - {self.status}"
+        return f"Newsletter for {self.message.subject} ({self.start_time} - {self.end_time})"
 
-    def update_status(self):
-        now_time = timezone.now()
-        if now_time < self.start_datetime:
-            self.status = 'created'
-        elif self.start_datetime <= now_time <= self.end_datetime:
-            if self.status != 'started':
-                self.status = 'started'
-        elif now_time > self.end_datetime:
-            self.status = 'completed'
-        self.save()
+    class Meta:
+        verbose_name = _('Newsletter')
+        verbose_name_plural = _('Newsletters')
 
-    def complete_sending(self):
-        self.status = 'completed'
-        self.save()
+class Attempt(models.Model):
+    STATUS_CHOICES = (
+        ('success', _('Success')),
+        ('failed', _('Failed')),
+    )
 
-    def update_statistics(self):
-        """Обновляет статистику рассылки на основе попыток доставки."""
-        attempts = DeliveryAttempt.objects.filter(mailing=self)
-        total_attempts = attempts.count()
-        successful_attempts = attempts.filter(status='success').count()
-        failed_attempts = attempts.filter(status='failed').count()
-        sent_messages = successful_attempts  # Предполагаем, что отправленные = успешные
-
-        # Обновляем или создаём запись статистики
-        stats, created = MailingStatistics.objects.get_or_create(mailing=self)
-        stats.total_attempts = total_attempts
-        stats.successful_attempts = successful_attempts
-        stats.failed_attempts = failed_attempts
-        stats.sent_messages = sent_messages
-        stats.status = 'success' if successful_attempts > 0 and failed_attempts == 0 else 'failed' if failed_attempts > 0 else 'pending'
-        stats.save()
-
-
-def send_mailing(mailing):
-    """Отправка рассылки и обновление статуса"""
-    recipients = mailing.recipients.all()
-    logger.info(f"Начинаем отправку для {len(recipients)} получателей")
-
-    for recipient in recipients:
-        try:
-            logger.info(f"Отправка на {recipient.email}")
-            send_mail(
-                mailing.message.subject,
-                mailing.message.body,
-                settings.DEFAULT_FROM_EMAIL,
-                [recipient.email],
-                fail_silently=False,
-            )
-            logger.info(f"Успешно отправлено на {recipient.email}")
-            DeliveryAttempt.create_attempt(mailing, recipient, 'success', 'Email sent successfully')
-        except Exception as e:
-            logger.error(f"Ошибка для {recipient.email}: {str(e)}")
-            DeliveryAttempt.create_attempt(mailing, recipient, 'failed', str(e))
-
-    mailing.complete_sending()
-    mailing.update_statistics()
-
-
-class DeliveryAttempt(models.Model):
-    STATUS_CHOICES = [
-        ('success', 'Успешно'),
-        ('failed', 'Не успешно'),
-    ]
-
-    mailing = models.ForeignKey(Mailing, on_delete=models.CASCADE)
-    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE)
-    attempt_time = models.DateTimeField(default=timezone.now)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
-    server_response = models.TextField(null=True, blank=True)
+    newsletter = models.ForeignKey(Newsletter, on_delete=models.CASCADE, related_name='attempts', verbose_name=_('Newsletter'))
+    attempt_time = models.DateTimeField(auto_now_add=True, verbose_name=_('Attempt Time'))
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, verbose_name=_('Status'))
+    server_response = models.TextField(blank=True, null=True, verbose_name=_('Server Response'))
 
     def __str__(self):
-        return f"Attempt {self.id} - {self.status} for Mailing {self.mailing.id} to {self.recipient.email}"
+        return f"Attempt for {self.newsletter} at {self.attempt_time}"
 
-    @staticmethod
-    def create_attempt(mailing, recipient, status, response=None):
-        try:
-            attempt = DeliveryAttempt(
-                mailing=mailing,
-                recipient=recipient,
-                status=status,
-                server_response=response
-            )
-            attempt.save()
-            logger.info(f"Успешно создана запись DeliveryAttempt с ID: {attempt.id}")
-            return attempt
-        except Exception as e:
-            logger.error(f"Ошибка при создании записи DeliveryAttempt: {str(e)}")
-            raise
+    class Meta:
+        verbose_name = _('Attempt')
+        verbose_name_plural = _('Attempts')

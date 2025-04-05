@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Список получателей</h1>
+<a href="{% url 'recipient_create' %}">Добавить получателя</a>
+<ul>
+{% for recipient in object_list %}
+    <li>{{ recipient.full_name }} ({{ recipient.email }}) - {{ recipient.comment }}
+        {% if user.is_manager or recipient.owner == user %}
+            <a href="{% url 'recipient_update' recipient.pk %}">Изменить</a>
+            <a href="{% url 'recipient_delete' recipient.pk %}">Удалить</a>
+        {% endif %}
+        <small>(Владелец: {{ recipient.owner.email }})</small>
+    </li>
+{% empty %}
+    <li>Нет получателей.</li>
+{% endfor %}
+</ul>
+{% endblock %}

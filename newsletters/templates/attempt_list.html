@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Список попыток отправки</h1>
+<ul>
+{% for attempt in object_list %}
+    <li>{{ attempt.attempt_time }} - {{ attempt.status }} ({{ attempt.server_response }}) 
+        - Рассылка: {{ attempt.newsletter.message.subject }}
+        {% if user.is_manager or attempt.newsletter.owner == user %}
+            <a href="{% url 'attempt_delete' attempt.pk %}">Удалить</a>
+        {% endif %}
+    </li>
+{% empty %}
+    <li>Нет попыток отправки.</li>
+{% endfor %}
+</ul>
+{% endblock %}
