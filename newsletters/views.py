@@ -1,63 +1,66 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+# newsletters/views.py
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
-from .models import Recipient, Message, Newsletter, Attempt
+from django.views.generic import (
+    ListView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+    TemplateView,
+)
+from django.views.decorators.cache import cache_page
+from django.db.models import Count
+from .models import Message, Recipient, Newsletter, Attempt
 
 
-class ManagerOrOwnerMixin(UserPassesTestMixin):
-    def test_func(self):
-        obj = self.get_object()
-        return self.request.user.is_manager() or obj.owner == self.request.user
+class HomeView(LoginRequiredMixin, TemplateView):
+    template_name = "newsletters/home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["total_newsletters"] = Newsletter.objects.filter(owner=user).count()
+        context["active_newsletters"] = Newsletter.objects.filter(
+            owner=user, status="started"
+        ).count()
+        context["unique_recipients"] = (
+            Recipient.objects.filter(owner=user).distinct().count()
+        )
+        return context
 
 
-class RecipientListView(LoginRequiredMixin, ListView):
-    model = Recipient
-    template_name = "recipient_list.html"  # Обновлено
+class ReportView(LoginRequiredMixin, TemplateView):
+    template_name = "newsletters/report.html"
 
-    def get_queryset(self):
-        if self.request.user.is_manager():
-            return Recipient.objects.all()
-        return Recipient.objects.filter(owner=self.request.user)
-
-
-class RecipientCreateView(LoginRequiredMixin, CreateView):
-    model = Recipient
-    fields = ["full_name", "email", "comment"]
-    template_name = "recipient_form.html"  # Обновлено
-    success_url = reverse_lazy("recipient_list")
-
-    def form_valid(self, form):
-        form.instance.owner = self.request.user
-        return super().form_valid(form)
-
-
-class RecipientUpdateView(LoginRequiredMixin, ManagerOrOwnerMixin, UpdateView):
-    model = Recipient
-    fields = ["full_name", "email", "comment"]
-    template_name = "recipient_form.html"  # Обновлено
-    success_url = reverse_lazy("recipient_list")
-
-
-class RecipientDeleteView(LoginRequiredMixin, ManagerOrOwnerMixin, DeleteView):
-    model = Recipient
-    template_name = "recipient_confirm_delete.html"  # Обновлено
-    success_url = reverse_lazy("recipient_list")
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        attempts = Attempt.objects.filter(newsletter__owner=user)
+        context["total_attempts"] = attempts.count()
+        context["successful_attempts"] = attempts.filter(status="successful").count()
+        context["failed_attempts"] = attempts.filter(status="failed").count()
+        context["newsletters"] = Newsletter.objects.filter(owner=user).annotate(
+            attempt_count=Count("attempt")
+        )
+        return context
 
 
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
-    template_name = "message_list.html"  # Обновлено
+    template_name = "newsletters/message_list.html"
+
+    @cache_page(60 * 15)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.request.user.is_manager():
-            return Message.objects.all()
         return Message.objects.filter(owner=self.request.user)
 
 
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     fields = ["subject", "body"]
-    template_name = "message_form.html"  # Обновлено
+    template_name = "newsletters/message_form.html"
     success_url = reverse_lazy("message_list")
 
     def form_valid(self, form):
@@ -65,93 +68,125 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class MessageUpdateView(LoginRequiredMixin, ManagerOrOwnerMixin, UpdateView):
+class MessageUpdateView(LoginRequiredMixin, UpdateView):
     model = Message
     fields = ["subject", "body"]
-    template_name = "message_form.html"  # Обновлено
+    template_name = "newsletters/message_form.html"
     success_url = reverse_lazy("message_list")
 
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
 
-class MessageDeleteView(LoginRequiredMixin, ManagerOrOwnerMixin, DeleteView):
+
+class MessageDeleteView(LoginRequiredMixin, DeleteView):
     model = Message
-    template_name = "message_confirm_delete.html"  # Обновлено
+    template_name = "newsletters/message_confirm_delete.html"
     success_url = reverse_lazy("message_list")
+
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
+
+
+class RecipientListView(LoginRequiredMixin, ListView):
+    model = Recipient
+    template_name = "newsletters/recipient_list.html"
+
+    @cache_page(60 * 15)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Recipient.objects.filter(owner=self.request.user)
+
+
+class RecipientCreateView(LoginRequiredMixin, CreateView):
+    model = Recipient
+    fields = ["email", "full_name", "comment"]
+    template_name = "newsletters/recipient_form.html"
+    success_url = reverse_lazy("recipient_list")
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class RecipientUpdateView(LoginRequiredMixin, UpdateView):
+    model = Recipient
+    fields = ["email", "full_name", "comment"]
+    template_name = "newsletters/recipient_form.html"
+    success_url = reverse_lazy("recipient_list")
+
+    def get_queryset(self):
+        return Recipient.objects.filter(owner=self.request.user)
+
+
+class RecipientDeleteView(LoginRequiredMixin, DeleteView):
+    model = Recipient
+    template_name = "newsletters/recipient_confirm_delete.html"
+    success_url = reverse_lazy("recipient_list")
+
+    def get_queryset(self):
+        return Recipient.objects.filter(owner=self.request.user)
 
 
 class NewsletterListView(LoginRequiredMixin, ListView):
     model = Newsletter
-    template_name = "newsletter_list.html"  # Обновлено
+    template_name = "newsletters/newsletter_list.html"
+
+    @cache_page(60 * 15)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.request.user.is_manager():
-            return Newsletter.objects.all()
         return Newsletter.objects.filter(owner=self.request.user)
 
 
 class NewsletterCreateView(LoginRequiredMixin, CreateView):
     model = Newsletter
-    fields = ["message", "recipients", "start_time", "end_time", "frequency", "status"]
-    template_name = "newsletter_form.html"  # Обновлено
+    fields = ["start_time", "end_time", "status", "message", "recipients"]
+    template_name = "newsletters/newsletter_form.html"
     success_url = reverse_lazy("newsletter_list")
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        if not self.request.user.is_manager():
-            form.fields["message"].queryset = Message.objects.filter(
-                owner=self.request.user
-            )
-            form.fields["recipients"].queryset = Recipient.objects.filter(
-                owner=self.request.user
-            )
-        return form
 
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
 
 
-class NewsletterUpdateView(LoginRequiredMixin, ManagerOrOwnerMixin, UpdateView):
+class NewsletterUpdateView(LoginRequiredMixin, UpdateView):
     model = Newsletter
-    fields = ["message", "recipients", "start_time", "end_time", "frequency", "status"]
-    template_name = "newsletter_form.html"  # Обновлено
+    fields = ["start_time", "end_time", "status", "message", "recipients"]
+    template_name = "newsletters/newsletter_form.html"
     success_url = reverse_lazy("newsletter_list")
 
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        if not self.request.user.is_manager():
-            form.fields["message"].queryset = Message.objects.filter(
-                owner=self.request.user
-            )
-            form.fields["recipients"].queryset = Recipient.objects.filter(
-                owner=self.request.user
-            )
-        return form
+    def get_queryset(self):
+        return Message.objects.filter(owner=self.request.user)
 
 
-class NewsletterDeleteView(LoginRequiredMixin, ManagerOrOwnerMixin, DeleteView):
+class NewsletterDeleteView(LoginRequiredMixin, DeleteView):
     model = Newsletter
-    template_name = "newsletter_confirm_delete.html"  # Обновлено
+    template_name = "newsletters/newsletter_confirm_delete.html"
     success_url = reverse_lazy("newsletter_list")
+
+    def get_queryset(self):
+        return Newsletter.objects.filter(owner=self.request.user)
 
 
 class AttemptListView(LoginRequiredMixin, ListView):
     model = Attempt
-    template_name = "attempt_list.html"  # Обновлено
+    template_name = "newsletters/attempt_list.html"
+
+    @cache_page(60 * 15)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        if self.request.user.is_manager():
-            return Attempt.objects.all()
         return Attempt.objects.filter(newsletter__owner=self.request.user)
 
 
-class AttemptDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    model = Attempt
-    template_name = "attempt_confirm_delete.html"  # Обновлено
-    success_url = reverse_lazy("attempt_list")
+class ManagerNewsletterListView(PermissionRequiredMixin, ListView):
+    model = Newsletter
+    template_name = "newsletters/manager_newsletter_list.html"
+    permission_required = "newsletters.can_view_all_newsletters"
 
-    def test_func(self):
-        attempt = self.get_object()
-        return (
-            self.request.user.is_manager()
-            or attempt.newsletter.owner == self.request.user
-        )
+    def get_queryset(self):
+        return Newsletter.objects.all()

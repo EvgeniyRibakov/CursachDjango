@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load cache %}
+{% block content %}
+    <h1>Главная страница</h1>
+    {% cache 500 home request.user.username %}
+        <p>Всего рассылок: {{ total_newsletters }}</p>
+        <p>Активных рассылок: {{ active_newsletters }}</p>
+        <p>Уникальных получателей: {{ unique_recipients }}</p>
+    {% endcache %}
+{% endblock %}

@@ -13,7 +13,7 @@ from .views import (
     NewsletterUpdateView,
     NewsletterDeleteView,
     AttemptListView,
-    AttemptDeleteView,
+    # Удаляем AttemptDeleteView, так как он не нужен
 )
 from django.views.generic import RedirectView
 
@@ -54,7 +54,5 @@ urlpatterns = [
         name="newsletter_delete",
     ),
     path("attempts/", AttemptListView.as_view(), name="attempt_list"),
-    path(
-        "attempts/<int:pk>/delete/", AttemptDeleteView.as_view(), name="attempt_delete"
-    ),
+    # Удаляем маршрут для attempts/<int:pk>/delete/
 ]

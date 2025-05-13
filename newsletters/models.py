@@ -1,120 +1,77 @@
+# newsletters/models.py
+from django.conf import settings
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from users.models import CustomUser
-
-
-class Recipient(models.Model):
-    full_name = models.CharField(max_length=255, verbose_name=_("Full Name"))
-    email = models.EmailField(unique=True, verbose_name=_("Email"))
-    comment = models.TextField(blank=True, null=True, verbose_name=_("Comment"))
-    owner = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="recipients",
-        verbose_name=_("Owner"),
-    )
-
-    def __str__(self):
-        return f"{self.full_name} ({self.email})"
-
-    class Meta:
-        verbose_name = _("Recipient")
-        verbose_name_plural = _("Recipients")
 
 
 class Message(models.Model):
-    subject = models.CharField(max_length=255, verbose_name=_("Subject"))
-    body = models.TextField(verbose_name=_("Body"))
+    subject = models.CharField(max_length=255)
+    body = models.TextField()
     owner = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="messages",
-        verbose_name=_("Owner"),
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="messages"
     )
 
     def __str__(self):
         return self.subject
 
     class Meta:
-        verbose_name = _("Message")
-        verbose_name_plural = _("Messages")
+        permissions = [
+            ("can_view_all_messages", "Can view all messages"),
+        ]
 
 
-class Newsletter(models.Model):
-    FREQUENCY_CHOICES = (
-        ("daily", _("Daily")),
-        ("weekly", _("Weekly")),
-        ("monthly", _("Monthly")),
-    )
-    STATUS_CHOICES = (
-        ("created", _("Created")),
-        ("started", _("Started")),
-        ("finished", _("Finished")),
-    )
-
-    message = models.ForeignKey(
-        Message,
-        on_delete=models.CASCADE,
-        related_name="newsletters",
-        verbose_name=_("Message"),
-    )
-    recipients = models.ManyToManyField(
-        Recipient, related_name="newsletters", verbose_name=_("Recipients")
-    )
-    start_time = models.DateTimeField(verbose_name=_("Start Time"))
-    end_time = models.DateTimeField(verbose_name=_("End Time"))
-    frequency = models.CharField(
-        max_length=10,
-        choices=FREQUENCY_CHOICES,
-        default="daily",
-        verbose_name=_("Frequency"),
-    )
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default="created",
-        verbose_name=_("Status"),
-    )
+class Recipient(models.Model):
+    email = models.EmailField(unique=True)
+    full_name = models.CharField(max_length=255)
+    comment = models.TextField(blank=True, null=True)  # Добавляем null=True
     owner = models.ForeignKey(
-        CustomUser,
-        on_delete=models.CASCADE,
-        related_name="newsletters",
-        verbose_name=_("Owner"),
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recipients"
     )
 
     def __str__(self):
-        return f"Newsletter for {self.message.subject} ({self.start_time} - {self.end_time})"
+        return self.email
 
     class Meta:
-        verbose_name = _("Newsletter")
-        verbose_name_plural = _("Newsletters")
+        permissions = [
+            ("can_view_all_recipients", "Can view all recipients"),
+        ]
+
+
+class Newsletter(models.Model):
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    STATUS_CHOICES = [
+        ("created", "Создана"),
+        ("started", "Запущена"),
+        ("completed", "Завершена"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="created")
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    recipients = models.ManyToManyField(Recipient, related_name="newsletters")
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="newsletters"
+    )
+
+    def __str__(self):
+        return f"Newsletter {self.id} - {self.status}"
+
+    class Meta:
+        permissions = [
+            ("can_view_all_newsletters", "Can view all newsletters"),
+            ("can_disable_newsletters", "Can disable newsletters"),
+        ]
 
 
 class Attempt(models.Model):
-    STATUS_CHOICES = (
-        ("success", _("Success")),
-        ("failed", _("Failed")),
-    )
-
+    attempt_time = models.DateTimeField(auto_now_add=True)
+    STATUS_CHOICES = [
+        ("successful", "Успешно"),
+        ("failed", "Не успешно"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    server_response = models.TextField(null=True, blank=True)
     newsletter = models.ForeignKey(
-        Newsletter,
-        on_delete=models.CASCADE,
-        related_name="attempts",
-        verbose_name=_("Newsletter"),
-    )
-    attempt_time = models.DateTimeField(
-        auto_now_add=True, verbose_name=_("Attempt Time")
-    )
-    status = models.CharField(
-        max_length=10, choices=STATUS_CHOICES, verbose_name=_("Status")
-    )
-    server_response = models.TextField(
-        blank=True, null=True, verbose_name=_("Server Response")
+        Newsletter, on_delete=models.CASCADE, related_name="attempts"
     )
 
     def __str__(self):
         return f"Attempt for {self.newsletter} at {self.attempt_time}"
-
-    class Meta:
-        verbose_name = _("Attempt")
-        verbose_name_plural = _("Attempts")
