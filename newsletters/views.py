@@ -14,7 +14,7 @@ from .models import Message, Recipient, Newsletter, Attempt
 
 
 class HomeView(LoginRequiredMixin, TemplateView):
-    template_name = "newsletters/home.html"
+    template_name = "newsletters/newsletters/home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -30,7 +30,7 @@ class HomeView(LoginRequiredMixin, TemplateView):
 
 
 class ReportView(LoginRequiredMixin, TemplateView):
-    template_name = "newsletters/report.html"
+    template_name = "newsletters/newsletters/report.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -47,7 +47,7 @@ class ReportView(LoginRequiredMixin, TemplateView):
 
 class MessageListView(LoginRequiredMixin, ListView):
     model = Message
-    template_name = "newsletters/message_list.html"
+    template_name = "newsletters/newsletters/message_list.html"
 
     @cache_page(60 * 15)
     def get(self, request, *args, **kwargs):
@@ -60,7 +60,7 @@ class MessageListView(LoginRequiredMixin, ListView):
 class MessageCreateView(LoginRequiredMixin, CreateView):
     model = Message
     fields = ["subject", "body"]
-    template_name = "newsletters/message_form.html"
+    template_name = "newsletters/newsletters/message_form.html"
     success_url = reverse_lazy("message_list")
 
     def form_valid(self, form):
@@ -71,7 +71,7 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
 class MessageUpdateView(LoginRequiredMixin, UpdateView):
     model = Message
     fields = ["subject", "body"]
-    template_name = "newsletters/message_form.html"
+    template_name = "newsletters/newsletters/message_form.html"
     success_url = reverse_lazy("message_list")
 
     def get_queryset(self):
@@ -80,7 +80,7 @@ class MessageUpdateView(LoginRequiredMixin, UpdateView):
 
 class MessageDeleteView(LoginRequiredMixin, DeleteView):
     model = Message
-    template_name = "newsletters/message_confirm_delete.html"
+    template_name = "newsletters/newsletters/message_confirm_delete.html"
     success_url = reverse_lazy("message_list")
 
     def get_queryset(self):
@@ -89,7 +89,7 @@ class MessageDeleteView(LoginRequiredMixin, DeleteView):
 
 class RecipientListView(LoginRequiredMixin, ListView):
     model = Recipient
-    template_name = "newsletters/recipient_list.html"
+    template_name = "newsletters/newsletters/recipient_list.html"
 
     @cache_page(60 * 15)
     def get(self, request, *args, **kwargs):
@@ -102,7 +102,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
 class RecipientCreateView(LoginRequiredMixin, CreateView):
     model = Recipient
     fields = ["email", "full_name", "comment"]
-    template_name = "newsletters/recipient_form.html"
+    template_name = "newsletters/newsletters/recipient_form.html"
     success_url = reverse_lazy("recipient_list")
 
     def form_valid(self, form):
@@ -113,7 +113,7 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
 class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     fields = ["email", "full_name", "comment"]
-    template_name = "newsletters/recipient_form.html"
+    template_name = "newsletters/newsletters/recipient_form.html"
     success_url = reverse_lazy("recipient_list")
 
     def get_queryset(self):
@@ -122,7 +122,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
 
 class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
-    template_name = "newsletters/recipient_confirm_delete.html"
+    template_name = "newsletters/newsletters/recipient_confirm_delete.html"
     success_url = reverse_lazy("recipient_list")
 
     def get_queryset(self):
@@ -131,7 +131,7 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
 
 class NewsletterListView(LoginRequiredMixin, ListView):
     model = Newsletter
-    template_name = "newsletters/newsletter_list.html"
+    template_name = "newsletters/newsletters/newsletter_list.html"
 
     @cache_page(60 * 15)
     def get(self, request, *args, **kwargs):
@@ -144,7 +144,7 @@ class NewsletterListView(LoginRequiredMixin, ListView):
 class NewsletterCreateView(LoginRequiredMixin, CreateView):
     model = Newsletter
     fields = ["start_time", "end_time", "status", "message", "recipients"]
-    template_name = "newsletters/newsletter_form.html"
+    template_name = "newsletters/newsletters/newsletter_form.html"
     success_url = reverse_lazy("newsletter_list")
 
     def form_valid(self, form):
@@ -155,7 +155,7 @@ class NewsletterCreateView(LoginRequiredMixin, CreateView):
 class NewsletterUpdateView(LoginRequiredMixin, UpdateView):
     model = Newsletter
     fields = ["start_time", "end_time", "status", "message", "recipients"]
-    template_name = "newsletters/newsletter_form.html"
+    template_name = "newsletters/newsletters/newsletter_form.html"
     success_url = reverse_lazy("newsletter_list")
 
     def get_queryset(self):
@@ -164,7 +164,7 @@ class NewsletterUpdateView(LoginRequiredMixin, UpdateView):
 
 class NewsletterDeleteView(LoginRequiredMixin, DeleteView):
     model = Newsletter
-    template_name = "newsletters/newsletter_confirm_delete.html"
+    template_name = "newsletters/newsletters/newsletter_confirm_delete.html"
     success_url = reverse_lazy("newsletter_list")
 
     def get_queryset(self):
@@ -173,7 +173,7 @@ class NewsletterDeleteView(LoginRequiredMixin, DeleteView):
 
 class AttemptListView(LoginRequiredMixin, ListView):
     model = Attempt
-    template_name = "newsletters/attempt_list.html"
+    template_name = "newsletters/newsletters/attempt_list.html"
 
     @cache_page(60 * 15)
     def get(self, request, *args, **kwargs):
@@ -185,7 +185,7 @@ class AttemptListView(LoginRequiredMixin, ListView):
 
 class ManagerNewsletterListView(PermissionRequiredMixin, ListView):
     model = Newsletter
-    template_name = "newsletters/manager_newsletter_list.html"
+    template_name = "newsletters/newsletters/manager_newsletter_list.html"
     permission_required = "newsletters.can_view_all_newsletters"
 
     def get_queryset(self):

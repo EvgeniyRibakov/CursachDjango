@@ -4,7 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f222b161-01df-4580-83b8-b07604517a2c" name="Changes" comment="abc" />
+    <list default="true" id="f222b161-01df-4580-83b8-b07604517a2c" name="Changes" comment="abc">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/admin.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/apps.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/migrations/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/models.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/tests.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/urls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mailing/views.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/attempt_confirm_delete.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/attempt_confirm_delete.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/attempt_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/attempt_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/message_confirm_delete.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/message_confirm_delete.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/message_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/message_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/message_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/message_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/newsletter_confirm_delete.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/newsletter_confirm_delete.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/newsletter_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/newsletter_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/newsletter_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/newsletter_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/recipient_confirm_delete.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/recipient_confirm_delete.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/recipient_form.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/recipient_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/templates/recipient_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/templates/newsletters/recipient_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newsletters/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/newsletters/views.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,8 +37,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -44,6 +68,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Acer\PycharmProjects\CursachDjango\newsletters\templates\newsletters" />
       <recent name="C:\Users\Acer\PycharmProjects\CursachDjango\mailing\templates\mailing" />
       <recent name="C:\Users\Acer\PycharmProjects\CursachDjango" />
       <recent name="C:\Users\Acer\PycharmProjects\CursachDjango\mailing_service" />
